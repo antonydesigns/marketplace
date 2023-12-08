@@ -1,5 +1,6 @@
 import Link from "next/link";
 import React from "react";
+import LoginButton from "./LoginButton";
 
 export default function Navbar() {
   return (
@@ -9,7 +10,7 @@ export default function Navbar() {
           Home
         </Link>
         <Link href="/login" className="underline">
-          Log In
+          <LoginButton />
         </Link>
       </div>
     </>
