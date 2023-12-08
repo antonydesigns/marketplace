@@ -7,7 +7,7 @@ import { NextRequest, NextResponse } from "next/server";
 export async function POST(request: NextRequest) {
   // console.log(standardHashing("123"));
 
-  let { key, password, step, context } = await request.json();
+  let { key, password, step, context, id } = await request.json();
 
   const validation = new StringValidation();
   const { validate } = validation;
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
     if (authLogic.error) return authLogic.errorResponseFor("createID");
 
     createJWT(COOKIE_USER);
-    if (authLogic.error) return authLogic.errorResponseFor("createJWT");
+    if (authLogic.error) return authLogic.errorResponseFor("createUserJWT");
 
     const token = getSerializedToken();
     const id = getID();
@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
     if (authLogic.error) return authLogic.errorResponseFor("createID");
 
     createJWT(COOKIE_ACCESS, 600);
-    if (authLogic.error) return authLogic.errorResponseFor("createJWT");
+    if (authLogic.error) return authLogic.errorResponseFor("createAccessJWT");
 
     const token = getSerializedToken();
 
@@ -146,15 +146,45 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  // if (context === "lock account") {
-  //   const id = "123"; // replace with data from localstorage
-  //   validate(id);
-  //   if (validation.error) return validation.errorResponseFor("id");
-  // }
+  if (context === "lock account") {
+    validate(id);
+    if (validation.error) return validation.errorResponseFor("id");
 
-  // if (context === "lock account") {
-  //   const id = "123"; // replace with data from localstorage
-  //   validate(id);
-  //   if (validation.error) return validation.errorResponseFor("id");
-  // }
+    createJWT(COOKIE_ACCESS, -1, id);
+    if (authLogic.error) return authLogic.errorResponseFor("createAccessJWT");
+
+    const token = getSerializedToken();
+
+    return new NextResponse(
+      JSON.stringify({
+        message: "JWT for Account Locking generated",
+        messCode: 14,
+      }),
+      {
+        status: 200,
+        headers: { "Set-Cookie": token },
+      }
+    );
+  }
+
+  if (context === "unlock account") {
+    validate(id);
+    if (validation.error) return validation.errorResponseFor("id");
+
+    createJWT(COOKIE_ACCESS, 600, id);
+    if (authLogic.error) return authLogic.errorResponseFor("createAccessJWT");
+
+    const token = getSerializedToken();
+
+    return new NextResponse(
+      JSON.stringify({
+        message: "Access token removed",
+        messCode: 16,
+      }),
+      {
+        status: 200,
+        headers: { "Set-Cookie": token },
+      }
+    );
+  }
 }

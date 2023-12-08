@@ -2,8 +2,9 @@
 import React, { useEffect, useState } from "react";
 import { useAuthStore } from "@/app/(global-state-store)/useAuthStore";
 import axios from "axios";
-import InputInvitationCode from "./InputInvitationCode";
+import InputInvitationCode from "./MultiFunctionalInput";
 import { useRouter } from "next/navigation";
+import MultiFunctionalInput from "./MultiFunctionalInput";
 
 export default function LoginUI() {
   const {
@@ -34,6 +35,8 @@ export default function LoginUI() {
       setSubmit("");
     } catch (error) {
       console.log("connection error");
+      // Reset submit state
+      setSubmit("");
     }
   }
 
@@ -55,6 +58,8 @@ export default function LoginUI() {
       prepareUserToken();
     } catch (error) {
       console.log("connection error");
+      // Reset submit state
+      setSubmit("");
     }
   }
 
@@ -70,6 +75,8 @@ export default function LoginUI() {
       console.log(response.data);
       localStorage.setItem("id", response.data.saveID);
       prepareAccessToken();
+      // Reset submit state
+      setSubmit("");
     } catch (error) {
       console.log("connection error");
     }
@@ -86,11 +93,15 @@ export default function LoginUI() {
       setUnlocked(true);
       setKey("");
       router.push("/");
+      // Reset submit state
+      setSubmit("");
       return;
     } catch (error) {
       setLoggedIn(false);
       setUnlocked(false);
       console.log("connection error");
+      // Reset submit state
+      setSubmit("");
     }
   }
 
@@ -101,13 +112,13 @@ export default function LoginUI() {
 
   return (
     <div>
-      <InputInvitationCode
+      <MultiFunctionalInput
         stateModifiers={["key", "setKey"]}
         label="Invitation code"
         submitCode="invitationCode"
       />
       <br />
-      <InputInvitationCode
+      <MultiFunctionalInput
         stateModifiers={["password", "setPassword"]}
         label="Reset password"
         submitCode="resetPassword"

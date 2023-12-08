@@ -102,7 +102,11 @@ export class AuthLogic {
     }
   }
 
-  createJWT(cookieConstant: string, minuteSpan: number = 60 * 60) {
+  createJWT(
+    cookieConstant: string,
+    minuteSpan: number = 60 * 60,
+    id: string = ""
+  ) {
     const maxAge = minuteSpan;
     this.maxAge = minuteSpan;
     const jwtSecret = process.env.NEXT_PUBLIC_JWT_SECRET || undefined;
@@ -113,6 +117,21 @@ export class AuthLogic {
       this.messCode = 9;
       return;
     }
+
+    if (this.id === "") {
+      this.id = id;
+    }
+
+    if (this.id === "") {
+      this.error = true;
+      this.message = "ID must be provided";
+      this.messCode = 15;
+      return;
+    }
+
+    console.log("we made it");
+    console.log(maxAge);
+    console.log(cookieConstant);
 
     const token = sign(
       {

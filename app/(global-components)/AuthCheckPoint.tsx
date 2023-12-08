@@ -15,6 +15,7 @@ export default function AuthCheckpoint() {
         context: "verifyUserJWT",
       });
       if (response.data.error) {
+        console.log("user token");
         console.log(response.data);
         setLoggedIn(false);
         return;
@@ -31,6 +32,7 @@ export default function AuthCheckpoint() {
         context: "verifyAccessJWT",
       });
       if (response.data.error) {
+        console.log("access token");
         console.log(response.data);
         setUnlocked(false);
         return;

@@ -11,6 +11,7 @@ export default function ProtectedComponents({
 }: {
   children: React.ReactNode;
 }) {
+  // Only for logged in users and unlocked accounts
   const [childComponents, setChildren] = useState<React.ReactNode>(<></>);
   const { setLoggedIn } = useAuthStore();
   const router = useRouter();

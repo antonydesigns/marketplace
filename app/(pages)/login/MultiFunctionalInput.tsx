@@ -3,7 +3,7 @@ import {
   useAuthStore,
 } from "@/app/(global-state-store)/useAuthStore";
 
-export default function InputInvitationCode({
+export default function MultiFunctionalInput({
   stateModifiers,
   label,
   submitCode,
