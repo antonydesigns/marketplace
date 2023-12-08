@@ -13,6 +13,8 @@ export function useAuthStore() {
     setPassword: store.setPassword,
     username: store.username,
     setUsername: store.setUsername,
+    id: store.id,
+    setID: store.setID,
   };
   return stateModifiers;
 }

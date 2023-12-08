@@ -3,18 +3,13 @@ import React, { useEffect, useState } from "react";
 import { useAuthStore } from "@/app/(global-state-store)/useAuthStore";
 import axios from "axios";
 import InputInvitationCode from "./InputInvitationCode";
+import { useRouter } from "next/navigation";
 
 export default function LoginUI() {
-  const {
-    key,
-    password,
-    setPassword,
-    username,
-    setUsername,
-    submit,
-    setSubmit,
-  } = useAuthStore();
+  const { key, setKey, id, setID, password, setPassword, submit, setSubmit } =
+    useAuthStore();
   const apiPath = "/api/auth";
+  const router = useRouter();
 
   async function submitInviteCode() {
     if (submit !== "invitationCode") return;
@@ -50,31 +45,16 @@ export default function LoginUI() {
     }
   }
 
-  async function resetUsername() {
-    if (submit !== "resetUsername") return;
-    try {
-      const response = await axios.post(apiPath, {
-        step: 3,
-        key: key,
-        username: username,
-      });
-      console.log(response.data);
-
-      // Reset submit state
-      setSubmit("");
-      setUsername("");
-      preparingAccount();
-    } catch (error) {
-      console.log("connection error");
-    }
-  }
-
   async function preparingAccount() {
     try {
       const response = await axios.post(apiPath, {
         step: 4,
         key: key,
       });
+      console.log(response.data);
+      localStorage.setItem("id", response.data.saveID);
+      setKey("");
+      router.push("/");
     } catch (error) {
       console.log("connection error");
     }
@@ -83,7 +63,6 @@ export default function LoginUI() {
   useEffect(() => {
     submitInviteCode();
     resetPassword();
-    resetUsername();
   }, [submit]);
 
   return (
@@ -101,11 +80,6 @@ export default function LoginUI() {
         inputType="password"
       />
       <br />
-      <InputInvitationCode
-        stateModifiers={["username", "setUsername"]}
-        label="Change username (optional)"
-        submitCode="resetUsername"
-      />
       <button onClick={preparingAccount}>Skip</button>
       <br />
       hello
