@@ -45,7 +45,7 @@ export class AuthLogic {
     try {
       const user = await getDoc(userRef);
       if (user.exists()) {
-        this.message = "Welcome back, " + user.data()?.username;
+        this.message = user.data()?.username;
         this.messCode = 4;
       } else {
         this.message = "Key is invalid";
