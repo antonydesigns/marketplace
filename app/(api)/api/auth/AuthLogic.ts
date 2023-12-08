@@ -3,8 +3,9 @@ import { COOKIE_NAME } from "@/app/(global-utils)/constants";
 import { db } from "@/app/(global-utils)/database/firebaseConfig";
 import { serialize } from "cookie";
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import { sign } from "jsonwebtoken";
+import { sign, verify } from "jsonwebtoken";
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 
 export class AuthLogic {
   private key = "";
@@ -25,6 +26,7 @@ export class AuthLogic {
     this.createJWT = this.createJWT.bind(this);
     this.getSerializedToken = this.getSerializedToken.bind(this);
     this.getID = this.getID.bind(this);
+    this.verifyJWT = this.verifyJWT.bind(this);
   }
 
   createId(key: string) {
@@ -34,6 +36,7 @@ export class AuthLogic {
       this.message = "Error no salt provided";
       this.error = true;
       this.messCode = 1;
+      return;
     } else {
       this.id = result;
     }
@@ -51,11 +54,13 @@ export class AuthLogic {
         this.message = "Key is invalid";
         this.error = true;
         this.messCode = 2;
+        return;
       }
     } catch (err) {
       this.message = "Network error while checking existing ID";
       this.error = true;
       this.messCode = 3;
+      return;
     }
   }
 
@@ -75,6 +80,7 @@ export class AuthLogic {
       this.error = true;
       this.message = "Error updating database";
       this.messCode = 6;
+      return;
     }
   }
 
@@ -93,6 +99,7 @@ export class AuthLogic {
       this.error = true;
       this.message = "Error updating database.";
       this.messCode = 7;
+      return;
     }
   }
 
@@ -127,6 +134,40 @@ export class AuthLogic {
     });
 
     this.serializedToken = serializedToken;
+  }
+
+  verifyJWT() {
+    const cookieStore = cookies();
+    const token = cookieStore.get(COOKIE_NAME);
+    const jwtSecret = process.env.NEXT_PUBLIC_JWT_SECRET || undefined;
+
+    if (typeof jwtSecret === "undefined") {
+      this.error = true;
+      this.message = "JWT secret is unavailable";
+      this.messCode = 9;
+      return;
+    }
+
+    if (!token) {
+      this.error = true;
+      this.message = "Unauthorized";
+      this.messCode = 11;
+      return;
+    }
+
+    const { value } = token;
+
+    try {
+      verify(value, jwtSecret);
+      this.message = "Authorized";
+      this.messCode = 12;
+      return;
+    } catch (error) {
+      this.error = true;
+      this.message = "Tampered token";
+      this.messCode = 13;
+      return;
+    }
   }
 
   getID() {

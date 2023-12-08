@@ -1,3 +1,10 @@
+import Secret from "./Secret";
+
 export default function Home() {
-  return <>Homepage</>;
+  return (
+    <>
+      <Secret />
+      <div className="">Homepage</div>
+    </>
+  );
 }

@@ -1,4 +1,5 @@
 import { AuthLogic } from "@/app/(api)/api/auth/AuthLogic";
+import { COOKIE_NAME } from "@/app/(global-utils)/constants";
 import { standardHashing } from "@/app/(global-utils)/functions";
 import { StringValidation } from "@/app/(global-utils)/input-safety/StringValidation";
 import { NextRequest, NextResponse } from "next/server";
@@ -7,7 +8,7 @@ import { serialize } from "v8";
 export async function POST(request: NextRequest) {
   // console.log(standardHashing("123"));
 
-  let { key, password, username, step } = await request.json();
+  let { key, password, step, context } = await request.json();
 
   const validation = new StringValidation();
   const { validate, sanitize } = validation;
@@ -20,6 +21,7 @@ export async function POST(request: NextRequest) {
     createJWT,
     getSerializedToken,
     getID,
+    verifyJWT,
   } = authLogic;
 
   if (step === 1) {
@@ -87,5 +89,20 @@ export async function POST(request: NextRequest) {
         headers: { "Set-Cookie": token },
       }
     );
+  }
+
+  if (context === "verifyJWT") {
+    verifyJWT();
+    if (authLogic.error && authLogic.messCode === 9)
+      return authLogic.errorResponseFor("JWT secret missing");
+    if (authLogic.error && authLogic.messCode === 11)
+      return authLogic.errorResponseFor("JWT not exist");
+    if (authLogic.error && authLogic.messCode === 13)
+      return authLogic.errorResponseFor("JWT tempered");
+
+    return NextResponse.json({
+      messcode: authLogic.messCode,
+      message: authLogic.message,
+    });
   }
 }

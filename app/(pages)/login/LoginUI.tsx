@@ -6,8 +6,16 @@ import InputInvitationCode from "./InputInvitationCode";
 import { useRouter } from "next/navigation";
 
 export default function LoginUI() {
-  const { key, setKey, id, setID, password, setPassword, submit, setSubmit } =
-    useAuthStore();
+  const {
+    key,
+    setKey,
+    password,
+    setPassword,
+    submit,
+    setSubmit,
+    loggedIn,
+    setLoggedIn,
+  } = useAuthStore();
   const apiPath = "/api/auth";
   const router = useRouter();
 
@@ -40,6 +48,9 @@ export default function LoginUI() {
       // Reset submit state
       setSubmit("");
       setPassword("");
+
+      // Go to next process
+      preparingAccount();
     } catch (error) {
       console.log("connection error");
     }
@@ -54,6 +65,7 @@ export default function LoginUI() {
       console.log(response.data);
       localStorage.setItem("id", response.data.saveID);
       setKey("");
+      setLoggedIn(true);
       router.push("/");
     } catch (error) {
       console.log("connection error");
@@ -79,10 +91,6 @@ export default function LoginUI() {
         submitCode="resetPassword"
         inputType="password"
       />
-      <br />
-      <button onClick={preparingAccount}>Skip</button>
-      <br />
-      hello
     </div>
   );
 }
