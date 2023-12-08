@@ -4,7 +4,7 @@ import ProtectedComponents from "@/app/(global-components)/ProtectedComponent";
 
 export default function LockPage() {
   return (
-    <ProtectedComponents>
+    <ProtectedComponents strict={false}>
       <LockAccountUI />
     </ProtectedComponents>
   );

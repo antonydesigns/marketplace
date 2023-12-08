@@ -2,41 +2,59 @@
 import { useState, useLayoutEffect, useEffect } from "react";
 import { API_PATH } from "../(global-utils)/constants";
 import axios from "axios";
-import { useAuthStore } from "../(global-state-store)/useAuthStore";
-import { redirect } from "next/navigation";
 import { useRouter } from "next/navigation";
 
 export default function ProtectedComponents({
   children,
+  strict = true,
 }: {
   children: React.ReactNode;
+  strict?: boolean;
 }) {
   // Only for logged in users and unlocked accounts
   const [childComponents, setChildren] = useState<React.ReactNode>(<></>);
-  const { setLoggedIn } = useAuthStore();
   const router = useRouter();
 
-  async function verifyJWT() {
+  async function verifyUserJWT() {
     try {
       const response = await axios.post(API_PATH, {
         context: "verifyUserJWT",
       });
       if (response.data.error) {
+        console.log("user token");
         console.log(response.data);
-        setLoggedIn(false);
         setChildren(<></>);
         router.push("/");
         return;
       }
-      setLoggedIn(true);
-      setChildren(children);
+      setChildren(<>{children}</>);
+    } catch (error) {
+      console.log("connection error");
+    }
+  }
+
+  async function verifyAccessJWT() {
+    try {
+      const response = await axios.post(API_PATH, {
+        context: "verifyAccessJWT",
+      });
+      if (response.data.error) {
+        console.log("access token");
+        console.log(response.data);
+        setChildren(<></>);
+        router.push("/");
+        return;
+      }
+      setChildren(<>{children}</>);
     } catch (error) {
       console.log("connection error");
     }
   }
 
   useEffect(() => {
-    verifyJWT();
+    verifyUserJWT();
+    if (!strict) return;
+    verifyAccessJWT();
   }, []);
 
   return <>{childComponents}</>;
