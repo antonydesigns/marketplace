@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
     createId(key);
     if (authLogic.error) return authLogic.errorResponseFor("createID");
 
-    createJWT(COOKIE_USER);
+    createJWT(COOKIE_USER, 60 * 60 * 24 * 365);
     if (authLogic.error) return authLogic.errorResponseFor("createUserJWT");
 
     const token = getSerializedToken();
