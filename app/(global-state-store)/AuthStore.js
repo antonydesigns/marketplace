@@ -11,5 +11,7 @@ export const AuthStore = create((set) => ({
   username: "",
   setUsername: (s) => set(() => ({ username: s })),
   id: "",
-  setID: (s) => set(() => ({ username: s })),
+  setID: (s) => set(() => ({ id: s })),
+  loggedIn: "",
+  setLoggedIn: (s) => set(() => ({ loggedIn: s })),
 }));

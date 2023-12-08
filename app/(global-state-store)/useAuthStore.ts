@@ -15,6 +15,8 @@ export function useAuthStore() {
     setUsername: store.setUsername,
     id: store.id,
     setID: store.setID,
+    loggedIn: store.loggedIn,
+    setLoggedIn: store.setLoggedIn,
   };
   return stateModifiers;
 }
