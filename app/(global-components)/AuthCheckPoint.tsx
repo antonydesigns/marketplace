@@ -7,7 +7,7 @@ import { useAuthStore } from "../(global-state-store)/useAuthStore";
 export default function AuthCheckpoint() {
   // Sets the global state of LoggedIn
   // Does not protect hidden components
-  const { setLoggedIn, setUnlocked } = useAuthStore();
+  const { setLoggedIn, setUnlocked, loggedIn, unlocked } = useAuthStore();
 
   async function verifyUserJWT() {
     try {
@@ -46,6 +46,7 @@ export default function AuthCheckpoint() {
   useEffect(() => {
     verifyUserJWT();
     verifyAccessJWT();
+    console.log(loggedIn, unlocked);
   }, []);
   return <></>;
 }

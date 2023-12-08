@@ -2,7 +2,7 @@
 import { useState, useLayoutEffect, useEffect } from "react";
 import { API_PATH } from "../(global-utils)/constants";
 import axios from "axios";
-import { useRouter } from "next/navigation";
+import { redirect, usePathname, useRouter } from "next/navigation";
 
 export default function ProtectedComponents({
   children,
@@ -14,6 +14,7 @@ export default function ProtectedComponents({
   // Only for logged in users and unlocked accounts
   const [childComponents, setChildren] = useState<React.ReactNode>(<></>);
   const router = useRouter();
+  const pathname = usePathname();
 
   async function verifyUserJWT() {
     try {
@@ -24,7 +25,9 @@ export default function ProtectedComponents({
         console.log("user token");
         console.log(response.data);
         setChildren(<></>);
-        router.push("/");
+        if (pathname !== "/") {
+          redirect("/");
+        }
         return;
       }
       setChildren(<>{children}</>);
@@ -42,7 +45,9 @@ export default function ProtectedComponents({
         console.log("access token");
         console.log(response.data);
         setChildren(<></>);
-        router.push("/");
+        if (pathname !== "/") {
+          redirect("/");
+        }
         return;
       }
       setChildren(<>{children}</>);
@@ -51,7 +56,7 @@ export default function ProtectedComponents({
     }
   }
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     verifyUserJWT();
     if (!strict) return;
     verifyAccessJWT();
