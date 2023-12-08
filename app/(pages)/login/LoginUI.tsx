@@ -6,7 +6,6 @@ import InputInvitationCode from "./InputInvitationCode";
 
 export default function LoginUI() {
   const { key, submit, setSubmit } = useAuthStore();
-  const [vars, setVars] = useState();
 
   useEffect(() => {
     if (submit !== "invitationCode") return;
@@ -18,7 +17,6 @@ export default function LoginUI() {
           key: key,
         });
         console.log(response.data);
-        setVars(response.data.message); // temporary
 
         // Reset submit state
         setSubmit("");
@@ -35,7 +33,6 @@ export default function LoginUI() {
         label="Invitation code"
         submitCode="invitationCode"
       />
-      {vars}
     </div>
   );
 }

@@ -9,22 +9,16 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   let { key, step } = await request.json();
-  const validation = new StringValidation();
+  const { check, errorResponseFor, sanitize } = new StringValidation();
 
-  validation.check(key);
+  if (step === 1) {
+    // validate
+    if (!check(key)) return errorResponseFor("key");
 
-  if (!validation.hasError()) {
-    // no validation error
-    key = validation.sanitized();
+    // use
+    key = sanitize(key);
     return NextResponse.json({
       message: key,
-    });
-  } else {
-    // validation error
-    return NextResponse.json({
-      error: validation._error,
-      messCode: validation._messCode,
-      message: validation._message,
     });
   }
 }

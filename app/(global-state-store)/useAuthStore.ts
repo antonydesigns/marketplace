@@ -9,6 +9,10 @@ export function useAuthStore() {
     setKey: store.setKey,
     submit: store.submit,
     setSubmit: store.setSubmit,
+    password: store.password,
+    setPassword: store.setPassword,
+    username: store.username,
+    setUsername: store.setUsername,
   };
   return stateModifiers;
 }
