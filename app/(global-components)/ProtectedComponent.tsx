@@ -1,8 +1,10 @@
 "use client";
-import { useState, useLayoutEffect } from "react";
+import { useState, useLayoutEffect, useEffect } from "react";
 import { API_PATH } from "../(global-utils)/constants";
 import axios from "axios";
 import { useAuthStore } from "../(global-state-store)/useAuthStore";
+import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 export default function ProtectedComponents({
   children,
@@ -11,17 +13,18 @@ export default function ProtectedComponents({
 }) {
   const [childComponents, setChildren] = useState<React.ReactNode>(<></>);
   const { setLoggedIn } = useAuthStore();
+  const router = useRouter();
 
   async function verifyJWT() {
     try {
       const response = await axios.post(API_PATH, {
-        context: "verifyJWT",
+        context: "verifyUserJWT",
       });
       if (response.data.error) {
         console.log(response.data);
-
         setLoggedIn(false);
         setChildren(<></>);
+        router.push("/");
         return;
       }
       setLoggedIn(true);
@@ -31,7 +34,7 @@ export default function ProtectedComponents({
     }
   }
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     verifyJWT();
   }, []);
 

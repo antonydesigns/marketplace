@@ -14,4 +14,6 @@ export const AuthStore = create((set) => ({
   setID: (s) => set(() => ({ id: s })),
   loggedIn: false,
   setLoggedIn: (s) => set(() => ({ loggedIn: s })),
+  unlocked: false,
+  setUnlocked: (s) => set(() => ({ unlocked: s })),
 }));

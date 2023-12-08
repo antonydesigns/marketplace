@@ -1,5 +1,4 @@
 import { standardHashing } from "@/app/(global-utils)/functions";
-import { COOKIE_NAME } from "@/app/(global-utils)/constants";
 import { db } from "@/app/(global-utils)/database/firebaseConfig";
 import { serialize } from "cookie";
 import { doc, getDoc, setDoc } from "firebase/firestore";
@@ -103,7 +102,7 @@ export class AuthLogic {
     }
   }
 
-  createJWT(minuteSpan: number = 60) {
+  createJWT(cookieConstant: string, minuteSpan: number = 60 * 60) {
     const maxAge = minuteSpan;
     this.maxAge = minuteSpan;
     const jwtSecret = process.env.NEXT_PUBLIC_JWT_SECRET || undefined;
@@ -125,7 +124,7 @@ export class AuthLogic {
       }
     );
 
-    const serializedToken = serialize(COOKIE_NAME, token, {
+    const serializedToken = serialize(cookieConstant, token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
@@ -136,9 +135,9 @@ export class AuthLogic {
     this.serializedToken = serializedToken;
   }
 
-  verifyJWT() {
+  verifyJWT(cookieConstant: string) {
     const cookieStore = cookies();
-    const token = cookieStore.get(COOKIE_NAME);
+    const token = cookieStore.get(cookieConstant);
     const jwtSecret = process.env.NEXT_PUBLIC_JWT_SECRET || undefined;
 
     if (typeof jwtSecret === "undefined") {

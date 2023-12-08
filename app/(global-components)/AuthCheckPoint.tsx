@@ -7,12 +7,12 @@ import { useAuthStore } from "../(global-state-store)/useAuthStore";
 export default function AuthCheckpoint() {
   // Sets the global state of LoggedIn
   // Does not protect hidden components
+  const { setLoggedIn, setUnlocked } = useAuthStore();
 
-  const { setLoggedIn } = useAuthStore();
-  async function verifyJWT() {
+  async function verifyUserJWT() {
     try {
       const response = await axios.post(API_PATH, {
-        context: "verifyJWT",
+        context: "verifyUserJWT",
       });
       if (response.data.error) {
         console.log(response.data);
@@ -25,8 +25,25 @@ export default function AuthCheckpoint() {
     }
   }
 
+  async function verifyAccessJWT() {
+    try {
+      const response = await axios.post(API_PATH, {
+        context: "verifyAccessJWT",
+      });
+      if (response.data.error) {
+        console.log(response.data);
+        setUnlocked(false);
+        return;
+      }
+      setUnlocked(true);
+    } catch (error) {
+      console.log("connection error");
+    }
+  }
+
   useEffect(() => {
-    verifyJWT();
+    verifyUserJWT();
+    verifyAccessJWT();
   }, []);
   return <></>;
 }

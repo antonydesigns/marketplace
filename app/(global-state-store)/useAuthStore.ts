@@ -17,6 +17,8 @@ export function useAuthStore() {
     setID: store.setID,
     loggedIn: store.loggedIn,
     setLoggedIn: store.setLoggedIn,
+    unlocked: store.unlocked,
+    setUnlocked: store.setUnlocked,
   };
   return stateModifiers;
 }

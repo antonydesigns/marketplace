@@ -15,6 +15,8 @@ export default function LoginUI() {
     setSubmit,
     loggedIn,
     setLoggedIn,
+    unlocked,
+    setUnlocked,
   } = useAuthStore();
   const apiPath = "/api/auth";
   const router = useRouter();
@@ -50,13 +52,16 @@ export default function LoginUI() {
       setPassword("");
 
       // Go to next process
-      preparingAccount();
+      prepareUserToken();
     } catch (error) {
       console.log("connection error");
     }
   }
 
-  async function preparingAccount() {
+  // STEP 3 WAS REMOVED (Reset the username)
+  // That can be done outside the Auth workflow
+
+  async function prepareUserToken() {
     try {
       const response = await axios.post(apiPath, {
         step: 4,
@@ -64,10 +69,27 @@ export default function LoginUI() {
       });
       console.log(response.data);
       localStorage.setItem("id", response.data.saveID);
-      setKey("");
-      setLoggedIn(true);
-      router.push("/");
+      prepareAccessToken();
     } catch (error) {
+      console.log("connection error");
+    }
+  }
+
+  async function prepareAccessToken() {
+    try {
+      const response = await axios.post(apiPath, {
+        step: 5,
+        key: key,
+      });
+      console.log(response.data);
+      setLoggedIn(true);
+      setUnlocked(true);
+      setKey("");
+      router.push("/");
+      return;
+    } catch (error) {
+      setLoggedIn(false);
+      setUnlocked(false);
       console.log("connection error");
     }
   }

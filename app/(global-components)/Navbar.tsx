@@ -12,9 +12,7 @@ export default function Navbar() {
         <Link href="/" className="underline">
           Home
         </Link>
-        <Link href="/login" className="underline">
-          <LoginButton />
-        </Link>
+        <LoginButton />
         {/* <Greeting /> */}
       </div>
     </>
