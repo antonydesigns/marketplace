@@ -7,10 +7,12 @@ export default function InputInvitationCode({
   stateModifiers,
   label,
   submitCode,
+  inputType = "text",
 }: {
   stateModifiers: AuthStoreStatesType[];
   label: string;
   submitCode: string;
+  inputType?: string;
 }) {
   const authStore = useAuthStore();
   const getter = authStore[stateModifiers[0]];
@@ -30,7 +32,7 @@ export default function InputInvitationCode({
     <form onSubmit={onSubmit}>
       <label className="block">{label}:</label>
       <input
-        type="text"
+        type={inputType}
         value={getter}
         onChange={(e) => setter(e.currentTarget.value)}
         className="border border-black px-2"

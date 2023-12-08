@@ -1,164 +1,99 @@
-import { standardHashing } from "@/app/(global-utils)/StandardHashing";
-import { StringValidation } from "@/app/(global-utils)/StringValidation";
-import { COOKIE_NAME } from "@/app/(global-utils)/constants";
-import { db } from "@/app/(global-utils)/firebaseConfig";
-import { serialize } from "cookie";
-import { doc, getDoc, setDoc } from "firebase/firestore";
-import { sign } from "jsonwebtoken";
+import { AuthLogic } from "@/app/(api)/api/auth/AuthLogic";
+import { standardHashing } from "@/app/(global-utils)/functions";
+import { StringValidation } from "@/app/(global-utils)/input-safety/StringValidation";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
-  let { key, step } = await request.json();
-  const { check, errorResponseFor, sanitize } = new StringValidation();
+  // console.log(standardHashing("123"));
+
+  let { key, password, username, step } = await request.json();
+
+  const validation = new StringValidation();
+  const { validate, sanitize } = validation;
+
+  const authLogic = new AuthLogic();
+  const {
+    createId,
+    checkIdExists,
+    resetPassword,
+    resetUsername,
+    createJWT,
+    getSerializedToken,
+  } = authLogic;
 
   if (step === 1) {
-    // validate
-    if (!check(key)) return errorResponseFor("key");
+    // Check validaity of invite code
+    validate(key);
+    if (validation.error) return validation.errorResponseFor("key");
 
-    // use
-    key = sanitize(key);
+    createId(key);
+    if (authLogic.error) return authLogic.errorResponseFor("createID");
+
+    await checkIdExists();
+    if (authLogic.error && authLogic.messCode === 2)
+      return authLogic.errorResponseFor("invalid key");
+    if (authLogic.error && authLogic.messCode === 3)
+      return authLogic.errorResponseFor("network error");
+
     return NextResponse.json({
-      message: key,
+      messcode: authLogic.messCode,
+      message: authLogic.message,
     });
   }
-}
 
-export class AuthLogic {
-  private key: string = "";
-  private password: string = "";
-  private username: string = "";
-  private id: string = "";
-  private hashedPass: string = "";
-  private serializedToken: string = "";
-  response: { error: boolean; message: string; payload: any } = {
-    error: false,
-    message: "",
-    payload: undefined,
-  };
+  if (step === 2) {
+    // Reset the password
+    validate(password);
+    if (validation.error) return validation.errorResponseFor("password");
+    validate(key);
+    if (validation.error) return validation.errorResponseFor("key");
 
-  async claimAccount(key: string) {
-    this.key = key;
-    this.createId();
-    await this.checkIdExists();
+    createId(key);
+    if (authLogic.error) return authLogic.errorResponseFor("createID");
+
+    await resetPassword(password);
+    if (authLogic.error) return authLogic.errorResponseFor("password");
+
+    return NextResponse.json({
+      messcode: authLogic.messCode,
+      message: authLogic.message,
+    });
   }
 
-  createId(key?: string) {
-    if (typeof key !== "undefined") this.key = key;
-    if (this.key === "") return;
-    let result = standardHashing(this.key);
-    if (typeof result === "undefined") {
-      this.response.message = "Error no salt provided";
-      this.response.error = true;
-      return;
-    } else {
-      this.id = result;
-    }
+  if (step === 3) {
+    // Reset the username
+    validate(username);
+    if (validation.error) return validation.errorResponseFor("username");
+    username = sanitize(username);
+    validate(key);
+    if (validation.error) return validation.errorResponseFor("key");
+
+    createId(key);
+    if (authLogic.error) return authLogic.errorResponseFor("createID");
+
+    await resetUsername(username);
+    if (authLogic.error) return authLogic.errorResponseFor("username");
+
+    return NextResponse.json({
+      messcode: authLogic.messCode,
+      message: authLogic.message,
+    });
   }
 
-  async checkIdExists() {
-    // Use the user ID (key) and check against DB
-    const userRef = doc(db, "users", this.id);
-    try {
-      const user = await getDoc(userRef);
-      if (user.exists()) {
-        this.response.message = "Welcome back, " + user.data()?.username;
-      } else {
-        this.response.message = "Key is wrong";
-        this.response.error = true;
-      }
-    } catch (err) {
-      this.response.message = "Error checking existing ID";
-      this.response.error = true;
-    }
-  }
+  if (step === 4) {
+    // Create JWT and store it in the cookie
+    validate(key);
+    if (validation.error) return validation.errorResponseFor("key");
 
-  async resetPassword(password: string) {
-    this.password = password;
-    this.createHashedPassword();
-    // Overwriting the password in the DB
-    const userRef = doc(db, "users", this.id);
-    const data = {
-      hash: this.hashedPass,
-    };
-    try {
-      await setDoc(userRef, data, { merge: true });
-      this.response.message = "Password reset.";
-    } catch (error) {
-      this.response.error = true;
-      this.response.message = "Error updating database.";
-    }
-  }
+    createId(key);
+    if (authLogic.error) return authLogic.errorResponseFor("createID");
 
-  async resetUsername(username: string) {
-    this.username = username;
-    // Overwriting the username in the DB
-    const userRef = doc(db, "users", this.id);
-    const data = {
-      username: this.username,
-    };
-    try {
-      await setDoc(userRef, data, { merge: true });
-      const user = await getDoc(userRef);
-      this.response.message = "We'll now call you " + user.data()?.username;
-    } catch (error) {
-      this.response.error = true;
-      this.response.message = "Error updating database.";
-    }
-  }
+    createJWT();
+    if (authLogic.error) return authLogic.errorResponseFor("createJWT");
 
-  createJWT() {
-    if (typeof this.id === "undefined") {
-      return NextResponse.json({
-        message: "Failed to generate user ID",
-        error: true,
-      });
-    }
-
-    const jwtSecret = process.env.NEXT_PUBLIC_JWT_SECRET || undefined;
-    if (typeof jwtSecret !== "undefined") {
-      const token = sign(
-        {
-          id: this.id,
-        },
-        jwtSecret,
-        {
-          expiresIn: "1h",
-        }
-      );
-
-      const serializedToken = serialize(COOKIE_NAME, token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 60 * 60 * 24 * 30,
-        path: "/",
-      });
-
-      this.serializedToken = serializedToken;
-    } else {
-      return NextResponse.json({
-        message: "JWT secret is not set",
-        error: true,
-      });
-    }
-  }
-
-  getSerializedToken() {
-    if (this.serializedToken === "") {
-      return undefined;
-    } else {
-      return this.serializedToken;
-    }
-  }
-
-  createHashedPassword() {
-    let result = standardHashing(this.password);
-    if (typeof result === "undefined") {
-      this.response.message = "Error no salt provided";
-      this.response.error = true;
-      return;
-    } else {
-      this.hashedPass = result;
-    }
+    return NextResponse.json({
+      messcode: authLogic.messCode,
+      message: authLogic.message,
+    });
   }
 }

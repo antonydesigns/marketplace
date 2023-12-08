@@ -2,26 +2,17 @@ import { NextResponse } from "next/server";
 
 export class StringValidation {
   error = false;
-  private message = "";
-  private messCode = 0;
+  message = "";
+  messCode = 0;
 
   constructor() {
     // to enable method destructuring
-    this.check = this.check.bind(this);
+    this.validate = this.validate.bind(this);
     this.errorResponseFor = this.errorResponseFor.bind(this);
     this.sanitize = this.sanitize.bind(this);
   }
 
-  check(input: string) {
-    this.checkEmptyString(input);
-    if (this.error) {
-      return false;
-    } else {
-      return true;
-    }
-  }
-
-  checkEmptyString(input: string) {
+  validate(input: string) {
     if (input === undefined || input === null) {
       this.message = "Input is undefined or null";
       this.error = true;
@@ -34,15 +25,6 @@ export class StringValidation {
       this.error = true;
       this.messCode = 2;
     }
-  }
-
-  errorResponseFor(variableName: string) {
-    return NextResponse.json({
-      variable: variableName,
-      error: this.error,
-      messCode: this.messCode,
-      message: this.message,
-    });
   }
 
   sanitize(input: string) {
@@ -58,5 +40,14 @@ export class StringValidation {
     input = input.replace(/'/g, "''");
 
     return input;
+  }
+
+  errorResponseFor(context: string) {
+    return NextResponse.json({
+      context: context,
+      error: this.error,
+      messCode: this.messCode,
+      message: this.message,
+    });
   }
 }
