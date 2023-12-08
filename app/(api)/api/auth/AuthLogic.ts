@@ -12,6 +12,7 @@ export class AuthLogic {
   private id = "";
   private hashedPass = "";
   private serializedToken = "";
+  private maxAge = 0;
   message = "";
   messCode = 0;
   error = false;
@@ -23,6 +24,7 @@ export class AuthLogic {
     this.resetUsername = this.resetUsername.bind(this);
     this.createJWT = this.createJWT.bind(this);
     this.getSerializedToken = this.getSerializedToken.bind(this);
+    this.getID = this.getID.bind(this);
   }
 
   createId(key: string) {
@@ -96,6 +98,7 @@ export class AuthLogic {
 
   createJWT(minuteSpan: number = 60) {
     const maxAge = minuteSpan;
+    this.maxAge = minuteSpan;
     const jwtSecret = process.env.NEXT_PUBLIC_JWT_SECRET || undefined;
 
     if (typeof jwtSecret === "undefined") {
@@ -126,12 +129,12 @@ export class AuthLogic {
     this.serializedToken = serializedToken;
   }
 
+  getID() {
+    return this.id;
+  }
+
   getSerializedToken() {
-    if (this.serializedToken === "") {
-      return undefined;
-    } else {
-      return this.serializedToken;
-    }
+    return this.serializedToken;
   }
 
   createHashedPassword() {

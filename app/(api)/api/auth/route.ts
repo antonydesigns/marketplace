@@ -2,6 +2,7 @@ import { AuthLogic } from "@/app/(api)/api/auth/AuthLogic";
 import { standardHashing } from "@/app/(global-utils)/functions";
 import { StringValidation } from "@/app/(global-utils)/input-safety/StringValidation";
 import { NextRequest, NextResponse } from "next/server";
+import { serialize } from "v8";
 
 export async function POST(request: NextRequest) {
   // console.log(standardHashing("123"));
@@ -16,9 +17,9 @@ export async function POST(request: NextRequest) {
     createId,
     checkIdExists,
     resetPassword,
-    resetUsername,
     createJWT,
     getSerializedToken,
+    getID,
   } = authLogic;
 
   if (step === 1) {
@@ -60,28 +61,9 @@ export async function POST(request: NextRequest) {
     });
   }
 
-  if (step === 3) {
-    // Reset the username
-    validate(username);
-    if (validation.error) return validation.errorResponseFor("username");
-    username = sanitize(username);
-    validate(key);
-    if (validation.error) return validation.errorResponseFor("key");
-
-    createId(key);
-    if (authLogic.error) return authLogic.errorResponseFor("createID");
-
-    await resetUsername(username);
-    if (authLogic.error) return authLogic.errorResponseFor("username");
-
-    return NextResponse.json({
-      messcode: authLogic.messCode,
-      message: authLogic.message,
-    });
-  }
-
   if (step === 4) {
     // Create JWT and store it in the cookie
+    // Store the ID into localstorage so user don't have to re-enter the secret key
     validate(key);
     if (validation.error) return validation.errorResponseFor("key");
 
@@ -91,9 +73,19 @@ export async function POST(request: NextRequest) {
     createJWT();
     if (authLogic.error) return authLogic.errorResponseFor("createJWT");
 
-    return NextResponse.json({
-      messcode: authLogic.messCode,
-      message: authLogic.message,
-    });
+    const token = getSerializedToken();
+    const id = getID();
+
+    return new NextResponse(
+      JSON.stringify({
+        message: "JWT token generated",
+        messCode: 10,
+        saveID: id,
+      }),
+      {
+        status: 200,
+        headers: { "Set-Cookie": token },
+      }
+    );
   }
 }
